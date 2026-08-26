@@ -16,6 +16,8 @@ window.globalData = {
     studentGroups: [],
     teachers: [],
     dashboardHistory: [],
+    dashboardLoaded: false,
+    dashboardLoading: false,
     isLoaded: false,
     serverTimestamp: null
 };
@@ -48,20 +50,46 @@ let simPieChart = null;
 let departmentChart = null;
 let simMostUsed = null;
 
-// Offline Inlined SVG Placeholder (Safe from ERR_CONNECTION_CLOSED)
-const placeholderImage = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200" fill="%23f1f5f9"><rect width="300" height="200" fill="%23f8fafc"/><circle cx="150" cy="85" r="35" fill="%23cbd5e1"/><path d="M90 160 C90 125, 210 125, 210 160 Z" fill="%23cbd5e1"/><text x="50%25" y="185" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" fill="%2394a3b8">ไม่มีรูปภาพ</text></svg>';
+// Helper: Escape HTML special characters for safe template string interpolation
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 
+// Offline Inlined SVG Placeholder (Properly URL-encoded Data URI - safe from quotes & tag breaking)
+const placeholderSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200" fill="#f1f5f9"><rect width="300" height="200" fill="#f8fafc"/><circle cx="150" cy="85" r="35" fill="#cbd5e1"/><path d="M90 160 C90 125, 210 125, 210 160 Z" fill="#cbd5e1"/><text x="50%" y="185" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#94a3b8">ไม่มีรูปภาพ</text></svg>';
+const placeholderImage = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(placeholderSvg);
+
+/**
+ * Format and optimize image URL:
+ * Converts full-resolution Google Drive / UserContent URLs to fast, compressed 400px edge thumbnails (=s400)
+ */
 function formatImageUrl(url) {
     if (!url || typeof url !== 'string' || url.trim() === '') {
         return placeholderImage;
     }
-    if (url.includes('drive.google.com')) {
-        const fileIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-        if (fileIdMatch && fileIdMatch[1]) {
-            return `https://lh5.googleusercontent.com/d/${fileIdMatch[1]}`;
-        }
+    const cleanUrl = url.trim();
+
+    // Match Google Drive or googleusercontent file IDs
+    const fileIdMatch = cleanUrl.match(/\/d\/([a-zA-Z0-9_-]+)/)
+                     || cleanUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+
+    if (fileIdMatch && fileIdMatch[1]) {
+        // Use Google CDN 400px thumbnail (=s400) for 90%+ bandwidth reduction & instant load
+        return `https://lh3.googleusercontent.com/d/${fileIdMatch[1]}=s400`;
     }
-    return url;
+
+    // Direct Google Drive raw alphanumeric ID
+    if (/^[a-zA-Z0-9_-]{25,}$/.test(cleanUrl)) {
+        return `https://lh3.googleusercontent.com/d/${cleanUrl}=s400`;
+    }
+
+    return cleanUrl;
 }
 
 const monthNames = [
@@ -100,8 +128,9 @@ async function callApi(action, method = 'GET', data = null, params = {}) {
 }
 
 /**
- * Standard 1: Single Batch Read Boot Function
- * Fetches all required master data in 1 server execution upon app boot.
+ * Standard 1: Single Batch Read Boot Function (Optimized Fast Boot)
+ * Fetches all essential master data (Inventory + Reservations + Lookups) in 1 server execution.
+ * Dashboard historical data is lazy-loaded on-demand or prefetched during idle time.
  */
 async function fetchInitialData(forceRefresh = false) {
     if (window.globalData.isLoaded && !forceRefresh && !window.dataNeedsRefresh) {
@@ -111,7 +140,7 @@ async function fetchInitialData(forceRefresh = false) {
     try {
         showLoading('กำลังโหลดข้อมูลระบบ...');
 
-        // 1 Single consolidated read endpoint
+        // 1 Single consolidated read endpoint for active master data
         const result = await callApi('get_initial_data', 'GET');
 
         if (!result.success || !result.data) {
@@ -119,16 +148,13 @@ async function fetchInitialData(forceRefresh = false) {
         }
 
         // Store into global memory cache
-        window.globalData = {
-            inventory: result.data.inventory || [],
-            reservations: result.data.reservations || [],
-            departments: result.data.departments || [],
-            studentGroups: result.data.studentGroups || [],
-            teachers: result.data.teachers || [],
-            dashboardHistory: result.data.dashboardHistory || [],
-            isLoaded: true,
-            serverTimestamp: result.data.serverTimestamp || Date.now()
-        };
+        window.globalData.inventory = result.data.inventory || [];
+        window.globalData.reservations = result.data.reservations || [];
+        window.globalData.departments = result.data.departments || [];
+        window.globalData.studentGroups = result.data.studentGroups || [];
+        window.globalData.teachers = result.data.teachers || [];
+        window.globalData.serverTimestamp = result.data.serverTimestamp || Date.now();
+        window.globalData.isLoaded = true;
 
         window.dataNeedsRefresh = false;
 
@@ -137,6 +163,10 @@ async function fetchInitialData(forceRefresh = false) {
         extractCategories();
 
         hideLoading();
+
+        // Non-blocking idle background prefetch for dashboard historical records
+        scheduleIdleDashboardPrefetch();
+
         return window.globalData;
 
     } catch (error) {
@@ -161,6 +191,10 @@ window.syncTargetedSimSheets = async function (sheets = ['หุ่นฝึก�
             }
             if (response.data.reservations) {
                 window.globalData.reservations = response.data.reservations;
+            }
+            if (response.data.dashboardHistory) {
+                window.globalData.dashboardHistory = response.data.dashboardHistory;
+                window.globalData.dashboardLoaded = true;
             }
             return true;
         }
@@ -316,7 +350,7 @@ function showReservationsView() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function showDashboardView() {
+async function showDashboardView() {
     setActiveTabStyle('dashboardTab');
     document.getElementById('reservationView')?.classList.add('hidden');
     document.getElementById('calendarSection')?.classList.add('hidden');
@@ -324,8 +358,14 @@ function showDashboardView() {
     document.getElementById('dashboardSection')?.classList.remove('hidden');
     document.getElementById('reservationViewBtn')?.classList.add('hidden');
 
-    renderDashboard();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Lazy load dashboard historical data if not yet loaded
+    if (!window.globalData.dashboardLoaded) {
+        await loadDashboardHistory();
+    } else {
+        renderDashboard();
+    }
 }
 
 function setActiveTabStyle(activeTabId) {
@@ -407,25 +447,30 @@ function renderMannequins() {
         const imageUrl = formatImageUrl(item.imageUrl);
         const isInCart = cart.some(cartItem => cartItem.id === item.id);
         const isAvailable = item.status === 'พร้อมให้บริการ' || item.status === '' || !item.status;
+        const safeName = escapeHtml(item.name || '');
+        const safeCode = escapeHtml(item.code || '-');
+        const safeCategory = escapeHtml(item.category || 'ทั่วไป');
+        const safeStatus = escapeHtml(item.status || 'พร้อมให้บริการ');
+        const safeId = escapeHtml(item.id || '');
 
         card.innerHTML = `
             <div>
                 <!-- Image Showcase Area -->
                 <div class="card-image-box relative h-28 sm:h-36 md:h-48 overflow-hidden flex items-center justify-center p-2">
-                    <img src="${imageUrl}" alt="${item.name}" class="w-full h-full object-contain transition-transform duration-300 hover:scale-105" loading="lazy" onerror="this.onerror=null; this.src=placeholderImage;">
+                    <img src="${imageUrl}" alt="${safeName}" class="w-full h-full object-contain transition-transform duration-300 hover:scale-105" loading="lazy" decoding="async" onerror="this.onerror=null; this.src=placeholderImage;">
                     <div class="absolute top-1.5 right-1.5 bg-blue-700/90 backdrop-blur-sm text-white font-medium px-2 py-0.5 rounded-full text-[10px] sm:text-xs shadow-sm line-clamp-1 max-w-[80%]">
-                        ${item.category || 'ทั่วไป'}
+                        ${safeCategory}
                     </div>
                 </div>
                 <!-- Details -->
                 <div class="p-2.5 sm:p-3.5 space-y-1 sm:space-y-1.5">
                     <div class="flex items-center">
                         <span class="inline-block px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-mono font-bold bg-blue-50 text-blue-700 border border-blue-100 line-clamp-1">
-                            ${item.code || '-'}
+                            ${safeCode}
                         </span>
                     </div>
-                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 line-clamp-2 leading-tight hover:text-blue-700 transition" title="${item.name}">
-                        ${item.name}
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 line-clamp-2 leading-tight hover:text-blue-700 transition" title="${safeName}">
+                        ${safeName}
                     </h3>
                 </div>
             </div>
@@ -433,10 +478,10 @@ function renderMannequins() {
             <div class="card-footer px-2.5 sm:px-3.5 py-2 sm:py-2.5 flex flex-col sm:flex-row gap-1.5 sm:items-center sm:justify-between mt-auto">
                 <span class="inline-flex items-center px-1.5 py-0.5 text-[10px] sm:text-xs font-semibold rounded-full w-fit ${isAvailable ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
                     <span class="w-1.5 h-1.5 rounded-full ${isAvailable ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'} mr-1"></span>
-                    ${item.status || 'พร้อมให้บริการ'}
+                    ${safeStatus}
                 </span>
                 <button class="add-to-cart-btn w-full sm:w-auto inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${!isAvailable ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : isInCart ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-blue-600 text-white hover:bg-blue-700'}" 
-                    data-id="${item.id}" ${!isAvailable ? 'disabled' : ''}>
+                    data-id="${safeId}" ${!isAvailable ? 'disabled' : ''}>
                     ${isInCart ? `
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -459,6 +504,36 @@ function renderMannequins() {
     });
 
     renderPagination();
+    preloadNearbyImages();
+}
+
+/**
+ * Intelligent Image Preloader:
+ * Preloads the next and previous page's thumbnails into browser cache in the background
+ * so that page navigation displays images instantly without delay.
+ */
+function preloadNearbyImages() {
+    if (!filteredMannequins || filteredMannequins.length === 0) return;
+
+    // Preload next page images
+    const nextStart = currentPage * itemsPerPage;
+    const nextEnd = nextStart + itemsPerPage;
+    const nextItems = filteredMannequins.slice(nextStart, nextEnd);
+
+    // Preload previous page images
+    const prevStart = Math.max(0, (currentPage - 2) * itemsPerPage);
+    const prevEnd = (currentPage - 1) * itemsPerPage;
+    const prevItems = (currentPage > 1) ? filteredMannequins.slice(prevStart, prevEnd) : [];
+
+    [...nextItems, ...prevItems].forEach(item => {
+        if (item && item.imageUrl) {
+            const url = formatImageUrl(item.imageUrl);
+            if (url && url !== placeholderImage) {
+                const img = new Image();
+                img.src = url;
+            }
+        }
+    });
 }
 
 function renderPagination() {
@@ -693,8 +768,69 @@ function renderReservationsPagination(totalItems) {
 /**
  * ==========================================================================
  * 3. Dashboard Chart Rendering with Dynamic Filters (Year & Borrow Type)
+ * Lazy Loading Architecture: Fetches 2000+ records on-demand or during idle time
  * ==========================================================================
  */
+
+/**
+ * On-Demand Dashboard History Loader:
+ * Fetches historical records only when needed, avoiding massive initial boot delay.
+ */
+async function loadDashboardHistory(forceRefresh = false) {
+    if (window.globalData.dashboardLoaded && !forceRefresh) {
+        renderDashboard();
+        return;
+    }
+    if (window.globalData.dashboardLoading) return;
+
+    window.globalData.dashboardLoading = true;
+    showLoading('กำลังโหลดข้อมูลสถิติแดชบอร์ด...');
+
+    try {
+        const result = await callApi('getDashboard', 'GET');
+        if (result && result.success && result.data) {
+            window.globalData.dashboardHistory = result.data.dashboardHistory || result.data || [];
+            window.globalData.dashboardLoaded = true;
+        }
+    } catch (error) {
+        console.warn('Load Dashboard History Error:', error);
+        // Fallback to active reservations if historical before-query sheet is unreachable
+        window.globalData.dashboardHistory = window.globalData.reservations || [];
+    } finally {
+        window.globalData.dashboardLoading = false;
+        hideLoading();
+        renderDashboard();
+    }
+}
+
+/**
+ * Non-blocking idle prefetcher for dashboard history:
+ * Requests dashboard data quietly in the background after the home UI is already interactive.
+ */
+function scheduleIdleDashboardPrefetch() {
+    const runPrefetch = () => {
+        if (!window.globalData.dashboardLoaded && !window.globalData.dashboardLoading) {
+            callApi('getDashboard', 'GET').then(res => {
+                if (res && res.success && res.data) {
+                    window.globalData.dashboardHistory = res.data.dashboardHistory || res.data || [];
+                    window.globalData.dashboardLoaded = true;
+                    // If user is already on dashboard tab, re-render
+                    const dashboardSec = document.getElementById('dashboardSection');
+                    if (dashboardSec && !dashboardSec.classList.contains('hidden')) {
+                        renderDashboard();
+                    }
+                }
+            }).catch(() => console.log('Idle dashboard prefetch skipped'));
+        }
+    };
+
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(runPrefetch, { timeout: 3000 });
+    } else {
+        setTimeout(runPrefetch, 2000);
+    }
+}
+
 function getDashboardSourceRecords() {
     if (window.globalData.dashboardHistory && window.globalData.dashboardHistory.length > 0) {
         return window.globalData.dashboardHistory;
@@ -1089,17 +1225,21 @@ function renderCartItems() {
             const cartItem = document.createElement('div');
             cartItem.className = 'flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200';
             const imageUrl = formatImageUrl(item.imageUrl);
+            const safeName = escapeHtml(item.name || '');
+            const safeCode = escapeHtml(item.code || '');
+            const safeCategory = escapeHtml(item.category || 'ทั่วไป');
+            const safeId = escapeHtml(item.id || '');
 
             cartItem.innerHTML = `
                 <div class="flex items-center gap-2.5">
-                    <img src="${imageUrl}" alt="${item.name}" class="h-10 w-10 sm:h-12 sm:w-12 object-contain bg-white rounded-lg p-1 border border-slate-100" onerror="this.onerror=null; this.src=placeholderImage;">
+                    <img src="${imageUrl}" alt="${safeName}" class="h-10 w-10 sm:h-12 sm:w-12 object-contain bg-white rounded-lg p-1 border border-slate-100" decoding="async" onerror="this.onerror=null; this.src=placeholderImage;">
                     <div>
-                        <p class="text-[10px] font-mono text-blue-600 font-bold">${item.code || ''}</p>
-                        <h4 class="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">${item.name}</h4>
-                        <p class="text-[10px] text-slate-500">${item.category || 'ทั่วไป'}</p>
+                        <p class="text-[10px] font-mono text-blue-600 font-bold">${safeCode}</p>
+                        <h4 class="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">${safeName}</h4>
+                        <p class="text-[10px] text-slate-500">${safeCategory}</p>
                     </div>
                 </div>
-                <button class="remove-btn text-rose-500 hover:text-rose-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-rose-50 transition" data-id="${item.id}">
+                <button class="remove-btn text-rose-500 hover:text-rose-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-rose-50 transition" data-id="${safeId}">
                     ลบ
                 </button>
             `;
