@@ -3,266 +3,513 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบจองหุ่นฝึกหัตถการ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="ระบบจองใช้หุ่นฝึกหัถการและอุปกรณ์ศูนย์แพทยศาสตรศึกษาชั้นคลินิก โรงพยาบาลพิจิตร">
+  <meta name="theme-color" content="#1d4ed8">
+  <title>ระบบจองหุ่นฝึกหัตถการ | ศูนย์แพทยศาสตรศึกษาชั้นคลินิก โรงพยาบาลพิจิตร</title>
+  
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- SweetAlert2 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js & Plugins -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
-  <style>
-    body { font-family: 'Prompt', sans-serif; }
-    .loader {
-      border: 4px solid #e5e7eb;
-      border-top: 4px solid #3b82f6;
-      border-radius: 50%;
-      width: 1.5rem;
-      height: 1.5rem;
-      animation: spin 1s linear infinite;
-      margin-right: 0.5rem;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .section-content { display: none; }
-    .section-content:not(.hidden) { display: block; }
-  </style>
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="bg-blue-50 min-h-screen flex flex-col">
-  <header class="bg-blue-700 text-white py-4 shadow-lg">
-    <div class="container mx-auto px-4">
-      <div class="flex justify-between items-center mb-4">
-        <div class="flex items-center gap-4">          
-             <img src="https://lh5.googleusercontent.com/d/1kHjp4nBT4V1Lk5bdA-HWzFBYFP6sqYqs" alt="Logo" class="h-16 mr-4">
-          <h1 class="text-xl md:text-2xl font-bold">ระบบจองใช้หุ่นฝึกหัตถการ ศูนย์แพทยศาสตรศึกษาชั้นคลินิก โรงพยาบาลพิจิตร</h1>
+<body class="bg-slate-100 min-h-screen flex flex-col text-slate-800 antialiased selection:bg-blue-600 selection:text-white">
+  
+  <!-- ====================================================================
+       Top Navigation Bar (Sleek Compact Header)
+       ==================================================================== -->
+  <header class="glass-header text-white py-3 md:py-4 shadow-md sticky top-0 z-30">
+    <div class="container mx-auto px-3 sm:px-4 max-w-7xl">
+      <div class="flex justify-between items-center">
+        <!-- Logo & Brand Title -->
+        <div class="flex items-center gap-2.5 sm:gap-3.5">          
+          <img src="https://lh5.googleusercontent.com/d/1kHjp4nBT4V1Lk5bdA-HWzFBYFP6sqYqs" alt="Phichit Hospital Logo" class="h-10 sm:h-12 w-auto rounded-lg shadow-sm bg-white p-1 flex-shrink-0">
+          <div>
+            <h1 class="text-sm sm:text-base md:text-xl font-bold leading-tight line-clamp-1">ระบบจองใช้หุ่นฝึกหัตถการ</h1>
+            <p class="text-[11px] sm:text-xs text-blue-100 line-clamp-1">ศูนย์แพทยศาสตรศึกษาชั้นคลินิก รพ.พิจิตร</p>
+          </div>
         </div>
-        <div id="reservationViewBtn" class="hidden">
-          <button class="bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-blue-800 transition border border-white/20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+        <!-- Header Cart Trigger Button -->
+        <div id="reservationViewBtn" class="flex items-center">
+          <button id="headerCartBtn" class="relative bg-white/15 hover:bg-white/25 active:scale-95 text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-semibold transition border border-white/20 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <span id="cartCount" class="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs leading-none font-bold">0</span>
+            <span class="hidden sm:inline">ตะกร้า</span>
+            <span id="cartCount" class="bg-rose-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[11px] leading-none font-bold shadow-sm">0</span>
           </button>
         </div>
       </div>
-      <nav class="flex space-x-4 overflow-x-auto pb-2 md:pb-0">
-        <button id="reserveTab" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-800 text-white whitespace-nowrap">จองหุ่นฝึก</button>
-        <button id="reservationsTab" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-600 hover:bg-blue-800 whitespace-nowrap">รายการที่กำลังใช้งาน</button>
-        <button id="dashboardTab" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-600 hover:bg-blue-800 whitespace-nowrap">แดชบอร์ด</button>
+
+      <!-- Desktop-Only Navigation Tabs -->
+      <nav class="hidden md:flex space-x-2 mt-3 overflow-x-auto pb-0.5 scrollbar-none">
+        <button id="reserveTab" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-800 text-white whitespace-nowrap shadow-sm">จองหุ่นฝึก</button>
+        <button id="calendarTab" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-600 hover:bg-blue-800 text-white whitespace-nowrap">ปฏิทิน</button>
+        <button id="reservationsTab" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-600 hover:bg-blue-800 text-white whitespace-nowrap">รายการที่กำลังใช้งาน</button>
+        <button id="dashboardTab" class="tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-600 hover:bg-blue-800 text-white whitespace-nowrap">แดชบอร์ดสรุปผล</button>
       </nav>
     </div>
   </header>
 
-  <main class="flex-grow container mx-auto px-4 py-6">
-    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-      <div class="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
-        <div class="loader mb-4"></div>
-        <p class="text-gray-700 font-medium">กำลังโหลดข้อมูล...</p>
+  <!-- ====================================================================
+       Mobile Bottom Navigation Bar (Thumb-Zone Friendly)
+       ==================================================================== -->
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 z-40 flex md:hidden items-center justify-around py-1.5 px-2">
+    <button id="bottomNavReserve" class="bottom-nav-item active flex flex-col items-center justify-center w-full py-1 text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon h-5 w-5 mb-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+      <span class="text-[11px] font-medium leading-none">จองหุ่นฝึก</span>
+    </button>
+
+    <button id="bottomNavCalendar" class="bottom-nav-item flex flex-col items-center justify-center w-full py-1 text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon h-5 w-5 mb-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <span class="text-[11px] font-medium leading-none">ปฏิทิน</span>
+    </button>
+
+    <button id="bottomNavReservations" class="bottom-nav-item flex flex-col items-center justify-center w-full py-1 text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon h-5 w-5 mb-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+      <span class="text-[11px] font-medium leading-none">รายการใช้งาน</span>
+    </button>
+
+    <button id="bottomNavDashboard" class="bottom-nav-item flex flex-col items-center justify-center w-full py-1 text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="nav-icon h-5 w-5 mb-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+      <span class="text-[11px] font-medium leading-none">แดชบอร์ด</span>
+    </button>
+  </nav>
+
+  <!-- ====================================================================
+       Main Content Container
+       ==================================================================== -->
+  <main class="flex-grow container mx-auto px-3 sm:px-4 py-4 md:py-6 max-w-7xl">
+    
+    <!-- Global Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+      <div class="bg-white p-5 rounded-2xl shadow-2xl flex flex-col items-center max-w-xs w-full mx-4 border border-slate-100">
+        <div class="loader loader-lg mb-3"></div>
+        <p id="loadingText" class="text-slate-700 text-xs sm:text-sm font-medium">กำลังโหลดข้อมูลระบบ...</p>
       </div>
     </div>
     
-    <section id="dashboardSection" class="section-content hidden">
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 class="text-2xl font-bold text-emerald-700 mb-6 flex items-center">
-            <i class="fas fa-chart-pie mr-3"></i> แดชบอร์ดสรุปผล
-          </h2>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-gradient-to-r from-blue-500 to-blue-300 rounded-lg shadow-md p-6 text-white">
-              <div class="flex justify-between items-center">
-                <div>
-                  <p class="text-white text-opacity-80 text-sm font-medium">จำนวนการจองทั้งหมด</p>
-                  <h3 class="text-3xl font-bold mt-2" id="totalUsed">0</h3>
-                </div>
-              </div>
-            </div>
-
-            <div class="bg-gradient-to-r from-sky-500 to-sky-300 rounded-lg shadow-md p-6 text-white">
-              <div class="flex justify-between items-center">
-                <div>
-                  <p class="text-white text-opacity-80 text-sm font-medium">จำนวนหุ่น/อุปกรณ์ทั้งหมด</p>
-                  <h3 class="text-3xl font-bold mt-2" id="simulationsTotal">0</h3>
-                </div>
-              </div>
-            </div>
-
-            <div class="bg-gradient-to-r from-indigo-500 to-indigo-300 rounded-lg shadow-md p-6 text-white">
-              <div class="flex justify-between items-center">
-                <div>
-                  <p class="text-white text-opacity-80 text-sm font-medium">จำนวนหุ่น/อุปกรณ์ที่กำลังถูกใช้งาน</p>
-                  <h3 class="text-3xl font-bold mt-2" id="simulationUsing">0</h3>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <h3 class="text-lg font-semibold text-gray-700 mb-4">จำนวนการจองรายปี (ครั้ง)</h3>
-              <div class="h-80">
-                <canvas id="monthlyBookingChart"></canvas>
-              </div>
-            </div>
-            
-            <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <h3 class="text-lg font-semibold text-gray-700 mb-4">สัดส่วนการจองใช้</h3>
-              <div class="h-80">
-                <canvas id="simPieChart"></canvas>
-              </div>
-            </div>
-          </div>
-
-        <div class="mt-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <h3 class="text-lg font-semibold text-gray-700 mb-4">จำนวนการจองตามหน่วยงาน (10 อันดับแรก)</h3>
-              <div class="h-80">
-                <canvas id="departmentChart"></canvas>
-              </div>
-            </div>
-
-          <div class="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <h3 class="text-lg font-semibold text-gray-700 mb-4">จำนวนหุ่น/อุปกรณ์ที่ถูกใช้งานมากที่สุด (10 อันดับแรก)</h3>
-              <div class="h-80">
-                <canvas id="simMostUsed"></canvas>
-              </div>
-            </div>
-        </div>
-      </div>
-        </div>
-      </section>
-
-
+    <!-- ====================================================================
+         1. Reservation & Equipment List View (Default Home)
+         ==================================================================== -->
     <div id="reservationView">
-      <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div class="flex-grow relative">
-            <input type="text" id="searchInput" placeholder="ค้นหาหุ่นฝึกหัตถการ..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm pl-10">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      
+      <!-- Search & Horizontal Filter Area -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 sm:p-4 mb-4 space-y-3">
+        <!-- Search Row & Sort Controls -->
+        <div class="flex items-center gap-2">
+          <div class="relative flex-grow">
+            <input type="text" id="searchInput" placeholder="ค้นหาชื่อหุ่น, รหัส..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-xs sm:text-sm transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <div class="flex flex-col md:flex-row gap-4">
-            <select id="categoryFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm">
-                <option value="">ทุกประเภท</option>
-            </select>
-            <select id="sortBy" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm">
-                <option value="name">เรียงตามชื่อ</option>
-                <option value="category">เรียงตามประเภท</option>
+          <div class="flex-shrink-0">
+            <select id="sortBy" class="px-2.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 text-xs sm:text-sm font-medium text-slate-700">
+              <option value="name">เรียง ก-ฮ</option>
+              <option value="category">หมวดหมู่</option>
             </select>
           </div>
         </div>
-      </div>
 
-      <div id="loadingIndicator" class="flex justify-center items-center py-12">
-        <div class="loader"></div>
-        <span class="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
-      </div>
-
-      <div id="mannequinList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 hidden">
+        <!-- Horizontal Scrollable Category Chips -->
+        <div class="relative">
+          <div id="categoryChips" class="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <!-- Dynamically populated via JS -->
+            <button class="category-chip active px-3.5 py-1.5 rounded-full text-xs font-semibold border" data-category="">ทั้งหมด</button>
+          </div>
         </div>
+        
+        <!-- Hidden category select for programmatic sync -->
+        <select id="categoryFilter" class="hidden">
+          <option value="">ทุกประเภท</option>
+        </select>
+      </div>
 
-      <div id="paginationMenu" class="flex justify-between items-center mt-6 hidden">
-        <button id="prevPage" class="px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
-            ก่อนหน้า
+      <!-- Equipment 2-Column Mobile & Responsive Grid -->
+      <div id="mannequinList" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6"></div>
+
+      <!-- Pagination -->
+      <div id="paginationMenu" class="flex flex-wrap justify-between items-center mt-6 mb-8 gap-3 hidden">
+        <button id="prevPage" class="px-3.5 py-2 bg-blue-700 text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm">
+          ก่อนหน้า
         </button>
-        <div id="pageNumbers" class="flex space-x-2"></div>
-        <button id="nextPage" class="px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
-            ถัดไป
+        <div id="pageNumbers" class="flex flex-wrap gap-1 justify-center"></div>
+        <button id="nextPage" class="px-3.5 py-2 bg-blue-700 text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm">
+          ถัดไป
         </button>
-        <span id="pageInfo" class="text-sm text-gray-600 hidden md:inline"></span>
+        <span id="pageInfo" class="text-xs text-slate-500 font-medium w-full sm:w-auto text-center sm:text-right"></span>
       </div>
     </div>
 
-    <div id="reservationsView" class="hidden">
-      <div class="bg-white rounded-lg shadow-md p-4">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">รายการจองทั้งหมด</h2>
-        <div id="reservationsLoading" class="flex justify-center items-center py-12">
-          <div class="loader"></div>
-          <span class="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
+    <!-- ====================================================================
+         2. Google Calendar View
+         ==================================================================== -->
+    <section id="calendarSection" class="section-content hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 sm:p-5 mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span class="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </span>
+              ปฏิทินตารางการใช้หุ่นฝึก
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">ศูนย์แพทยศาสตรศึกษาชั้นคลินิก รพ.พิจิตร</p>
+          </div>
+          <a href="https://calendar.google.com/calendar/embed?src=011d5261edb18d2f0107ed1bdb19eecadaab5e371e1460cefb399de94bc9d769%40group.calendar.google.com&ctz=Asia%2FBangkok" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition border border-blue-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            เปิดหน้าต่างเต็ม
+          </a>
         </div>
-        <div id="reservationsTable" class="hidden overflow-x-auto">
+
+        <div class="w-full bg-slate-50 rounded-xl overflow-hidden border border-slate-200 shadow-inner" style="min-height: 520px; height: 68vh;">
+          <iframe 
+            src="https://calendar.google.com/calendar/embed?src=011d5261edb18d2f0107ed1bdb19eecadaab5e371e1460cefb399de94bc9d769%40group.calendar.google.com&ctz=Asia%2FBangkok" 
+            style="border: 0; width: 100%; height: 100%; min-height: 520px;" 
+            frameborder="0" 
+            scrolling="no"
+            title="ตารางการใช้หุ่นฝึกหัตถการ">
+          </iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         3. Active Reservations View (Adaptive: Cards on Mobile, Table on Desktop)
+         ==================================================================== -->
+    <div id="reservationsView" class="hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+            <span class="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </span>
+            รายการขอใช้หุ่นฝึกหัตถการ
+          </h2>
+
+          <div class="flex items-center gap-2 self-end sm:self-auto">
+            <label for="reservationsPerPageSelect" class="text-xs font-semibold text-slate-600 whitespace-nowrap">แสดงต่อหน้า:</label>
+            <select id="reservationsPerPageSelect" class="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500">
+              <option value="10" selected>10 รายการ</option>
+              <option value="20">20 รายการ</option>
+              <option value="30">30 รายการ</option>
+              <option value="50">50 รายการ</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Reservations Search Bar -->
+        <div class="relative mb-4">
+          <input type="text" id="reservationsSearchInput" placeholder="ค้นหาชื่อผู้จอง, หุ่นฝึก, แผนก, รายละเอียด, หรือสถานะ..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-500 text-xs sm:text-sm transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <!-- Mobile Card View (Visible on Mobile only) -->
+        <div id="reservationsCards" class="grid grid-cols-1 gap-3 md:hidden"></div>
+
+        <!-- Desktop Table View (Visible on Desktop >= md only) -->
+        <div id="reservationsTable" class="hidden md:block overflow-x-auto rounded-xl border border-gray-100">
           <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+            <thead class="bg-slate-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อผู้จอง</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อหุ่น</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ประเภท</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">แผนก</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนผู้ใช้</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รายละเอียด</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เริ่มจอง</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สิ้นสุดจอง</th>
+                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">สถานะ</th>
+                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ชื่อผู้จอง</th>
+                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ชื่อหุ่นฝึก</th>
+                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ประเภท</th>
+                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">แผนก/รายวิชา</th>
+                <th class="px-5 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">จำนวน (คน)</th>
+                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">รายละเอียด</th>
+                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">เริ่มจอง</th>
+                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">สิ้นสุดจอง</th>
               </tr>
             </thead>
-            <tbody id="reservationsTableBody" class="bg-white divide-y divide-gray-200">
-              </tbody>
+            <tbody id="reservationsTableBody" class="bg-white divide-y divide-gray-100"></tbody>
           </table>
         </div>
+
+        <!-- Empty State -->
         <div id="noReservations" class="hidden text-center py-12">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <p class="text-gray-500 text-lg">ไม่พบรายการจอง</p>
+          <p class="text-slate-500 text-sm font-medium">ไม่พบรายการขอใช้ที่กำลังดำเนินการ</p>
+        </div>
+
+        <!-- Reservations Pagination Controls -->
+        <div id="reservationsPaginationMenu" class="flex flex-wrap justify-between items-center mt-5 pt-3 border-t border-slate-100 gap-3 hidden">
+          <button id="prevReservationsPage" class="px-3.5 py-2 bg-blue-700 text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm">
+            ก่อนหน้า
+          </button>
+          <div id="reservationsPageNumbers" class="flex flex-wrap gap-1 justify-center"></div>
+          <button id="nextReservationsPage" class="px-3.5 py-2 bg-blue-700 text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm">
+            ถัดไป
+          </button>
+          <span id="reservationsPageInfo" class="text-xs text-slate-500 font-medium w-full sm:w-auto text-center sm:text-right"></span>
         </div>
       </div>
     </div>
+
+    <!-- ====================================================================
+         4. Dashboard View
+         ==================================================================== -->
+    <section id="dashboardSection" class="section-content hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-4">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base sm:text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span class="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </span>
+            แดชบอร์ดสรุปผลการใช้งาน
+          </h2>
+        </div>
+
+        <!-- Dashboard Interactive Filters (Year, Month & Borrow Type) -->
+        <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <!-- Year Filter -->
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <label for="dashboardYearFilter" class="text-xs font-semibold text-slate-700 whitespace-nowrap">ปี:</label>
+              <select id="dashboardYearFilter" class="w-full sm:w-auto px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-500">
+                <option value="">ทั้งหมด (ทุกปี)</option>
+              </select>
+            </div>
+
+            <!-- Month Filter -->
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <label for="dashboardMonthFilter" class="text-xs font-semibold text-slate-700 whitespace-nowrap">เดือน:</label>
+              <select id="dashboardMonthFilter" class="w-full sm:w-auto px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-500">
+                <option value="">ทั้งหมด (ทุกเดือน)</option>
+                <option value="0">มกราคม</option>
+                <option value="1">กุมภาพันธ์</option>
+                <option value="2">มีนาคม</option>
+                <option value="3">เมษายน</option>
+                <option value="4">พฤษภาคม</option>
+                <option value="5">มิถุนายน</option>
+                <option value="6">กรกฎาคม</option>
+                <option value="7">สิงหาคม</option>
+                <option value="8">กันยายน</option>
+                <option value="9">ตุลาคม</option>
+                <option value="10">พฤศจิกายน</option>
+                <option value="11">ธันวาคม</option>
+              </select>
+            </div>
+
+            <!-- Borrow Type Filter -->
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <label for="dashboardTypeFilter" class="text-xs font-semibold text-slate-700 whitespace-nowrap">ประเภทการจอง:</label>
+              <select id="dashboardTypeFilter" class="w-full sm:w-auto px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:ring-2 focus:ring-blue-100 focus:border-blue-500">
+                <option value="">ทั้งหมด (ทุกประเภท)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Reset Filter Button -->
+          <button id="resetDashboardFilterBtn" class="text-xs font-semibold text-blue-600 hover:text-blue-800 transition px-2.5 py-1 rounded hover:bg-blue-50 border border-blue-200">
+            ล้างตัวกรอง
+          </button>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+          <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-4 text-white shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-blue-100 text-[11px] font-medium uppercase tracking-wider">จำนวนการจองทั้งหมด</p>
+              <h3 class="text-2xl sm:text-3xl font-bold mt-1" id="totalUsed">0</h3>
+            </div>
+            <div class="p-2.5 bg-white/10 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-sky-500 to-sky-600 rounded-xl p-4 text-white shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-sky-100 text-[11px] font-medium uppercase tracking-wider">จำนวนหุ่นทั้งหมด</p>
+              <h3 class="text-2xl sm:text-3xl font-bold mt-1" id="simulationsTotal">0</h3>
+            </div>
+            <div class="p-2.5 bg-white/10 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-sky-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-4 text-white shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-indigo-100 text-[11px] font-medium uppercase tracking-wider">กำลังถูกใช้งาน</p>
+              <h3 class="text-2xl sm:text-3xl font-bold mt-1" id="simulationUsing">0</h3>
+            </div>
+            <div class="p-2.5 bg-white/10 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Grid (Yearly, Monthly, Type, Department, Most Used) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          
+          <!-- 1. Yearly Booking Chart -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <h3 class="text-xs sm:text-sm font-semibold text-slate-800 mb-3 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-blue-600"></span> จำนวนการจองรายปี (ครั้ง)
+            </h3>
+            <div class="h-64 sm:h-72">
+              <canvas id="yearlyBookingChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 2. Monthly Booking Chart -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <h3 class="text-xs sm:text-sm font-semibold text-slate-800 mb-3 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-teal-600"></span> จำนวนการจองรายเดือน (12 เดือน)
+            </h3>
+            <div class="h-64 sm:h-72">
+              <canvas id="monthlyBookingChart"></canvas>
+            </div>
+          </div>
+          
+          <!-- 3. Borrow Type Proportion Chart -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <h3 class="text-xs sm:text-sm font-semibold text-slate-800 mb-3 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-sky-500"></span> สัดส่วนประเภทการจอง
+            </h3>
+            <div class="h-64 sm:h-72">
+              <canvas id="simPieChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 4. Department Usage Chart -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <h3 class="text-xs sm:text-sm font-semibold text-slate-800 mb-3 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-indigo-500"></span> จำนวนการจองตามหน่วยงาน (10 อันดับ)
+            </h3>
+            <div class="h-64 sm:h-72">
+              <canvas id="departmentChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 5. Most Used Mannequins Chart (Full width on lg) -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 lg:col-span-2">
+            <h3 class="text-xs sm:text-sm font-semibold text-slate-800 mb-3 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-blue-700"></span> หุ่นฝึกที่ใช้งานมากที่สุด (10 อันดับ)
+            </h3>
+            <div class="h-64 sm:h-72">
+              <canvas id="simMostUsed"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="bg-blue-800 text-white py-4">
-    <div class="container mx-auto px-4 text-center">
-      <p>© Phichit Medical Education Center</p>
-    </div>
-  </footer>
-
-  <div id="cartModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto flex flex-col">
-      <div class="bg-blue-700 text-white px-6 py-4 flex justify-between items-center sticky top-0 z-10">
-        <h2 class="text-xl font-bold">รายการจองหุ่นฝึกหัตถการ</h2>
-        <button id="closeCartBtn">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+  <!-- ====================================================================
+       Cart & Booking Slide-Up Bottom Sheet Drawer (Mobile-First)
+       ==================================================================== -->
+  <div id="cartModal" class="bottom-sheet-backdrop fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end md:items-center justify-center z-50 hidden">
+    <div class="bottom-sheet-container bg-white w-full md:max-w-2xl max-h-[92vh] md:max-h-[85vh] overflow-hidden flex flex-col border border-slate-200 shadow-2xl">
+      
+      <!-- Drawer Top Bar & Handle (Mobile Swipe Bar) -->
+      <div class="bg-blue-700 text-white px-5 pt-3 pb-3.5 flex flex-col justify-between relative flex-shrink-0">
+        <div class="sheet-handle md:hidden"></div>
+        <div class="flex justify-between items-center w-full">
+          <h2 class="text-sm sm:text-base font-bold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
-        </button>
-      </div>
-      <div class="p-4 flex-grow overflow-y-auto">
-        <div id="cartItems" class="mb-6">
-          <div class="text-center text-gray-500 py-8" id="emptyCartMessage">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            รายการจองหุ่นฝึก
+          </h2>
+          <button id="closeCartBtn" class="text-blue-100 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
-            <p class="text-lg">ไม่มีรายการในตะกร้า</p>
-          </div>
-          <div id="cartItemsList" class="space-y-4 hidden">
-            </div>
+          </button>
         </div>
-        <form id="reservationForm" class="space-y-6 border-t border-gray-200 pt-6 hidden">
-          <h3 class="text-lg font-medium text-gray-900">ข้อมูลการจอง</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      </div>
+
+      <!-- Scrollable Drawer Body -->
+      <div class="p-4 sm:p-6 flex-grow overflow-y-auto space-y-5">
+        
+        <!-- Cart Items List -->
+        <div id="cartItems">
+          <div class="text-center text-slate-400 py-8" id="emptyCartMessage">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <p class="text-sm font-medium">ไม่มีรายการในตะกร้า</p>
+            <p class="text-xs text-slate-400 mt-0.5">กด "เลือก" หุ่นฝึกที่ต้องการใช้งาน</p>
+          </div>
+          <div id="cartItemsList" class="space-y-2.5 hidden"></div>
+        </div>
+
+        <!-- Reservation Booking Form -->
+        <form id="reservationForm" class="space-y-3.5 border-t border-slate-200 pt-4 hidden">
+          <h3 class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-600"></span> ข้อมูลรายละเอียดการจอง
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label for="borrowerName" class="block text-sm font-medium text-gray-700 mb-1">ชื่อผู้จอง <span class="text-red-500">*</span></label>
-              <input type="text" id="borrowerName" name="borrowerName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm">
+              <label for="borrowerName" class="block text-[11px] font-semibold text-slate-700 mb-1">ชื่อผู้ขอใช้ <span class="text-rose-500">*</span></label>
+              <input type="text" id="borrowerName" name="borrowerName" placeholder="ระบุชื่อ-นามสกุล" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 text-xs sm:text-sm">
             </div>
+
             <div>
-              <label for="department" class="block text-sm font-medium text-gray-700 mb-1">รายวิชา / แผนกที่ใช้ <span class="text-red-500">*</span></label>
-              <input type="text" id="department" name="department" list="departmentList" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm" autocomplete="off">
+              <label for="department" class="block text-[11px] font-semibold text-slate-700 mb-1">รายวิชา / แผนกที่ใช้ <span class="text-rose-500">*</span></label>
+              <input type="text" id="department" name="department" list="departmentList" placeholder="ค้นหาหรือเลือกแผนก" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 text-xs sm:text-sm" autocomplete="off">
               <datalist id="departmentList"></datalist>
             </div>
+
             <div>
-              <label for="startDateTime" class="block text-sm font-medium text-gray-700 mb-1">วันที่/เวลา เริ่มจอง <span class="text-red-500">*</span></label>
-              <input type="datetime-local" id="startDateTime" name="startDateTime" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm">
+              <label for="startDateTime" class="block text-[11px] font-semibold text-slate-700 mb-1">เริ่มจอง <span class="text-rose-500">*</span></label>
+              <input type="datetime-local" id="startDateTime" name="startDateTime" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 text-xs sm:text-sm">
             </div>
+
             <div>
-              <label for="endDateTime" class="block text-sm font-medium text-gray-700 mb-1">วันที่/เวลา สิ้นสุดจอง <span class="text-red-500">*</span></label>
-              <input type="datetime-local" id="endDateTime" name="endDateTime" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm">
+              <label for="endDateTime" class="block text-[11px] font-semibold text-slate-700 mb-1">สิ้นสุดจอง <span class="text-rose-500">*</span></label>
+              <input type="datetime-local" id="endDateTime" name="endDateTime" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 text-xs sm:text-sm">
             </div>
+
             <div>
-              <label for="borrowType" class="block text-sm font-medium text-gray-700 mb-1">ประเภทการจอง <span class="text-red-500">*</span></label>
-              <select id="borrowType" name="borrowType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm">
+              <label for="borrowType" class="block text-[11px] font-semibold text-slate-700 mb-1">ประเภทการจอง <span class="text-rose-500">*</span></label>
+              <select id="borrowType" name="borrowType" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 text-xs sm:text-sm">
                 <option value="">เลือกประเภทการจอง</option>
                 <option value="ยืม">ยืม</option>
                 <option value="เรียน">เรียน</option>
@@ -271,818 +518,48 @@
                 <option value="อบรม">อบรม</option>
               </select>
             </div>
+
             <div>
-              <label for="useNumber" class="block text-sm font-medium text-gray-700 mb-1">จำนวนผู้ใช้งาน (คน) <span class="text-red-500">*</span></label>
-              <input type="number" id="useNumber" name="useNumber" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm">
+              <label for="useNumber" class="block text-[11px] font-semibold text-slate-700 mb-1">จำนวนผู้ใช้งาน (คน) <span class="text-rose-500">*</span></label>
+              <input type="number" id="useNumber" name="useNumber" min="1" placeholder="ระบุจำนวนคน" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 text-xs sm:text-sm">
             </div>
-            <div>
-              <label for="textDetails" class="block text-sm font-medium text-gray-700 mb-1">หัวข้อที่เรียน/สอน (รายละเอียด พร้อมเบอร์โทร) <span class="text-red-500">*</span></label>
-              <input type="text" id="textDetails" name="textDetails" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm">
+
+            <div class="sm:col-span-2">
+              <label for="textDetails" class="block text-[11px] font-semibold text-slate-700 mb-1">หัวข้อเรียน/สอน (รายละเอียด + เบอร์โทร) <span class="text-rose-500">*</span></label>
+              <input type="text" id="textDetails" name="textDetails" placeholder="ระบุหัวข้อ และเบอร์ติดต่อ" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 text-xs sm:text-sm">
             </div>
+
             <div>
-              <label for="stuGroup" class="block text-sm font-medium text-gray-700 mb-1">กลุ่มนิสิตแพทย์ (ถ้ามี)</label>
-              <select id="stuGroup" name="stuGroup" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm">
-                <option value="">กลุ่มนิสิตแพทย์</option>
+              <label for="stuGroup" class="block text-[11px] font-semibold text-slate-700 mb-1">กลุ่มนิสิตแพทย์ (ถ้ามี)</label>
+              <select id="stuGroup" name="stuGroup" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 text-xs sm:text-sm">
+                <option value="">เลือกกลุ่มนิสิตแพทย์</option>
               </select>
             </div>
+
             <div>
-              <label for="teachers" class="block text-sm font-medium text-gray-700 mb-1">อาจารย์ผู้สอน (ถ้ามี)</label>
-              <input type="text" id="teachers" name="teachers" list="teacherslist" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-sm" autocomplete="off">
+              <label for="teachers" class="block text-[11px] font-semibold text-slate-700 mb-1">อาจารย์ผู้สอน (ถ้ามี)</label>
+              <input type="text" id="teachers" name="teachers" list="teacherslist" placeholder="ค้นหาหรือระบุชื่ออาจารย์" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 text-xs sm:text-sm" autocomplete="off">
               <datalist id="teacherslist"></datalist>
             </div>
           </div>
         </form>
       </div>
-      <div class="bg-gray-100 px-6 py-4 flex justify-end gap-2 sticky bottom-0">
-        <button id="clearCartBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-gray-600 transition">ล้างตะกร้า</button>
-        <button id="submitReservationBtn" class="bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-blue-800 transition">
-            <span class="loader hidden"></span>
-            <span id="submitBtnText">ยืนยันการจอง</span>
+
+      <!-- Sticky Bottom Action Footer -->
+      <div class="bg-slate-50 px-4 py-3 flex justify-between items-center border-t border-slate-200 flex-shrink-0">
+        <button id="clearCartBtn" class="text-slate-500 hover:text-rose-600 text-xs font-semibold px-3 py-2 rounded-lg transition">
+          ล้างตะกร้า
+        </button>
+        <button id="submitReservationBtn" class="bg-blue-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-semibold hover:bg-blue-800 transition shadow-sm active:scale-95 disabled:opacity-50">
+          <span class="loader loader-white hidden"></span>
+          <span id="submitBtnText">ยืนยันการจอง</span>
         </button>
       </div>
     </div>
   </div>
 
-  <script>
-    // *** CONFIGURATION ***
-    // ใส่ URL ของ Google Apps Script Web App ที่ได้จากการ Deploy ที่นี่
-    const API_URL = 'https://script.google.com/macros/s/AKfycby8n00MxXKKBLIx30IAr_SLL58eJLg7QbEPUeVIVDZdg497oNQTAAP7IXF9zIoU2Ik/exec'; 
-
-    // Helper Function เพื่อยิง API ไปยัง GAS
-    async function callApi(action, method = 'GET', data = null) {
-        let url = API_URL;
-        const options = {
-            method: method,
-        };
-
-        if (method === 'GET') {
-            url += `?action=${action}`;
-        } else {
-            // POST Request
-            // ส่งเป็น Stringified JSON ใน body โดยไม่ระบุ Content-Type เป็น application/json 
-            // เพื่อหลีกเลี่ยง CORS Preflight ที่ซับซ้อนในบาง Browser เมื่อคุยกับ GAS
-            options.body = JSON.stringify({ action: action, data: data });
-        }
-
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        // DOM Elements
-        const dashboardTab = document.getElementById('dashboardTab');          
-        const dashboardLoading = document.getElementById('dashboardLoading');
-        const dashboardContent = document.getElementById('dashboardContent');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const mannequinList = document.getElementById('mannequinList');
-        const cartBtn = document.getElementById('reservationViewBtn');
-        const cartModal = document.getElementById('cartModal');
-        const closeCartBtn = document.getElementById('closeCartBtn');
-        const cartCount = document.getElementById('cartCount');
-        const cartItemsList = document.getElementById('cartItemsList');
-        const emptyCartMessage = document.getElementById('emptyCartMessage');
-        const reservationForm = document.getElementById('reservationForm');
-        const clearCartBtn = document.getElementById('clearCartBtn');
-        const submitReservationBtn = document.getElementById('submitReservationBtn');
-        const submitBtnText = document.getElementById('submitBtnText');
-        const searchInput = document.getElementById('searchInput');
-        const categoryFilter = document.getElementById('categoryFilter');
-        const sortBy = document.getElementById('sortBy');
-        const reserveTab = document.getElementById('reserveTab');
-        const reservationsTab = document.getElementById('reservationsTab');
-        const reservationView = document.getElementById('reservationView');
-        const reservationsView = document.getElementById('reservationsView');
-        const reservationsLoading = document.getElementById('reservationsLoading');
-        const reservationsTable = document.getElementById('reservationsTable');
-        const reservationsTableBody = document.getElementById('reservationsTableBody');
-        const noReservations = document.getElementById('noReservations');
-        const paginationMenu = document.getElementById('paginationMenu');
-        const prevPage = document.getElementById('prevPage');
-        const nextPage = document.getElementById('nextPage');
-        const pageNumbers = document.getElementById('pageNumbers');
-        const pageInfo = document.getElementById('pageInfo');
-        const departmentSelect = document.getElementById('department'); 
-        const departmentList = document.getElementById('departmentList');
-        const stuGroupSelect = document.getElementById('stuGroup');
-        const teachersSelect = document.getElementById('teachers');
-        const teachersList = document.getElementById('teacherslist');
-        const monthNames = [
-            'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-            'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-        ];
-
-        let monthlyBookingChart = null;
-        let simPieChart = null;
-        let departmentChart = null;
-        let simMostUsed = null;
-        
-        // State
-        let mannequins = [];
-        let filteredMannequins = [];
-        let cart = [];
-        let categories = new Set();
-        let reservations = [];
-        let currentPage = 1;
-        const itemsPerPage = 12;
-        let departments = [];
-        let stuGroupList = [];
-        let teachers = [];
-        let dashboardData = {};
-        
-        const placeholderImage = 'https://via.placeholder.com/300x200?text=ไม่มีรูปภาพ';
-
-        // ------------------------------------------------------------------
-        // API Calls replaced with fetch (callApi)
-        // ------------------------------------------------------------------
-
-        async function fetchDashboardData() {
-            try {
-                const dashboardSection = document.getElementById('dashboardSection');
-                dashboardSection.classList.remove('hidden');
-                showLoading();
-
-                // REPLACED: google.script.run
-                const data = await callApi('getDashboard');
-
-                hideLoading();
-                console.log('fetchDashboardData: Received data:', data);
-                
-                if (data.success) {
-                    dashboardData = data.data;
-                    renderDashboard();
-                } else {
-                    showError('ไม่สามารถโหลดข้อมูลแดชบอร์ดได้: ' + data.message);
-                }
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error);
-                hideLoading();
-                showError('เกิดข้อผิดพลาดในการโหลดข้อมูลแดชบอร์ด');
-            }
-        }
-
-        async function fetchDepartments() {
-            try {
-                // REPLACED: google.script.run
-                const data = await callApi('getDepartments');
-
-                if (data.success) {
-                    departments = data.data;
-                    populateDepartmentSelect();
-                } else {
-                    console.error('Failed to load departments');
-                }
-            } catch (error) {
-                console.error('Error fetching departments:', error);
-            }
-        }
-
-        async function fetchstuGroup() {
-            try {
-                // REPLACED: google.script.run
-                const data = await callApi('getStudentGroup');
-
-                if (data.success) {
-                    stuGroup = data.data; // Note: Global variable implicity used in original code
-                    populatestuGroupSelect(stuGroup);
-                } else {
-                    console.error('Failed to load student groups');
-                }
-            } catch (error) {
-                console.error('Error fetching StuGroup:', error);
-            }
-        }
-
-        async function fetchTeachers() {
-            try {
-                // REPLACED: google.script.run
-                const data = await callApi('getTeachers');
-
-                if (data.success) {
-                    teachers = data.data;
-                    populateTeachersSelect();
-                } else {
-                    console.error('Failed to load teachers');
-                }
-            } catch (error) {
-                console.error('Error fetching Teachers:', error);
-            }
-        }
-
-        async function fetchMannequins() {
-            try {
-                loadingIndicator.classList.remove('hidden');
-                showLoading();
-                
-                // REPLACED: google.script.run.getInventoryData()
-                // Action name matches the 'action' parameter in Code.gs doGet
-                const data = await callApi('getInventory');
-
-                hideLoading();
-                if (data.success) {
-                    mannequins = data.data;
-                    filteredMannequins = [...mannequins];
-                    categories = new Set(mannequins.map(item => item.category).filter(Boolean));
-                    currentPage = 1;
-                    populateCategoryFilter();
-                    renderMannequins();
-                    renderPagination();
-                } else {
-                    showError('ไม่สามารถโหลดข้อมูลหุ่นฝึกได้');
-                }
-            } catch (error) {
-                console.error('Error fetching mannequins:', error);
-                hideLoading();
-                showError('เกิดข้อผิดพลาดในการโหลดข้อมูลหุ่นฝึก');
-            } finally {
-                loadingIndicator.classList.add('hidden');
-                mannequinList.classList.remove('hidden');
-            }
-        }
-
-        async function fetchReservations() {
-            try {
-                reservationsLoading.classList.remove('hidden');
-                reservationsTable.classList.add('hidden');
-                noReservations.classList.add('hidden');
-                
-                // REPLACED: google.script.run.getReservationData()
-                const data = await callApi('getReservation');
-
-                if (data.success && Array.isArray(data.data)) {
-                    reservations = data.data;
-                    renderReservations();
-                } else {
-                    showError('ไม่สามารถโหลดข้อมูลการจองได้');
-                    noReservations.classList.remove('hidden');
-                }
-            } catch (error) {
-                console.error('fetchReservations error:', error);
-                showError('เกิดข้อผิดพลาดในการโหลดข้อมูลการจอง');
-                noReservations.classList.remove('hidden');
-            } finally {
-                reservationsLoading.classList.add('hidden');
-            }
-        }
-
-        async function submitReservation(event) {
-            event.preventDefault();
-            
-            if (cart.length === 0) {
-                showError('กรุณาเลือกหุ่นฝึกหัตถการอย่างน้อย 1 รายการ');
-                return;
-            }
-
-            const borrowerName = document.getElementById('borrowerName').value;
-            const department = departmentSelect.value;
-            const startDateTime = document.getElementById('startDateTime').value;
-            const endDateTime = document.getElementById('endDateTime').value;
-            const borrowType = document.getElementById('borrowType').value;
-            const useNumber = document.getElementById('useNumber').value;
-            const textDetails = document.getElementById('textDetails').value;
-            const studyGroup = stuGroupSelect.value;
-            const teacherName = teachersSelect.value;
-
-            if (!departments.includes(department)) {
-                showError('กรุณาเลือกแผนกที่ถูกต้องจากรายการ');
-                return;
-            }
-
-            if (!borrowerName || !department || !startDateTime || !endDateTime || !borrowType || !useNumber) {
-                showError('กรุณากรอกข้อมูลให้ครบถ้วน');
-                return;
-            }
-
-            const startDate = new Date(startDateTime);
-            const endDate = new Date(endDateTime);
-            if (startDate >= endDate) {
-                showError('วันที่/เวลาสิ้นสุดต้องมากกว่าวันที่/เวลาเริ่มต้น');
-                return;
-            }
-
-            Swal.fire({
-                title: 'ยืนยันการจอง',
-                text: 'คุณต้องการยืนยันการจองนี้หรือไม่?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'ยืนยัน',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33'
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    try {
-                        Swal.fire({
-                            title: 'กำลังบันทึก...',
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            showConfirmButton: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-
-                        const reservationsData = cart.map(item => ({
-                            mannequinId: item.id,
-                            mannequinName: item.name,
-                            borrowerName,
-                            startDateTime,
-                            endDateTime,
-                            borrowType,
-                            department,
-                            timestamp: new Date().toISOString(),
-                            textDetails,
-                            useNumber,
-                            studyGroup,
-                            teacherName                      
-                        }));
-
-                        // REPLACED: google.script.run.saveReservationData(reservations)
-                        // This is a POST request
-                        const response = await callApi('saveReservation', 'POST', reservationsData);
-
-                        if (response.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'บันทึกการจองเรียบร้อย!',
-                                showConfirmButton: false,
-                                timer: 1500
-                            }).then(() => {
-                                cart = [];
-                                updateCartCount();
-                                cartModal.classList.add('hidden');
-                                reservationForm.reset();
-                                loadingIndicator.classList.remove('hidden');
-                                mannequinList.classList.add('hidden');
-                                fetchMannequins();
-                            });
-                        } else {
-                            showError('ไม่สามารถบันทึกข้อมูลได้: ' + (response.message || 'เกิดข้อผิดพลาด'));
-                        }
-
-                    } catch (error) {
-                        console.error('Error submitting reservation:', error);
-                        showError('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-                    } finally {
-                        submitReservationBtn.disabled = false;
-                        submitReservationBtn.querySelector('.loader').classList.add('hidden');
-                        submitBtnText.textContent = 'ยืนยันการจอง';
-                    }
-                }
-            });
-        }
-
-        // ------------------------------------------------------------------
-        // Rendering & Helper Functions (Kept mostly same, adjusted usage)
-        // ------------------------------------------------------------------
-
-        function renderDashboard() {
-            // Destroy existing charts if they exist
-            if (monthlyBookingChart) { monthlyBookingChart.destroy(); monthlyBookingChart = null; }
-            if (simPieChart) { simPieChart.destroy(); simPieChart = null; }
-            if (departmentChart) { departmentChart.destroy(); departmentChart = null; }
-            if (simMostUsed) { simMostUsed.destroy(); simMostUsed = null; }
-
-            const defaultFont = { family: "'Prompt', sans-serif", size: 14 };
-
-            // 1. Stats
-            document.getElementById('totalUsed').textContent = dashboardData.totalReservations?.toLocaleString('th-TH') || '0';
-            document.getElementById('simulationsTotal').textContent = dashboardData.totalMannequins?.toLocaleString('th-TH') || '0';
-            document.getElementById('simulationUsing').textContent = dashboardData.mannequinsInUse?.toLocaleString('th-TH') || '0';
-
-            // 2. Charts
-            const yearlyCtx = document.getElementById('monthlyBookingChart').getContext('2d');
-            const yearlyEntries = Object.entries(dashboardData.yearlyCounts || {});
-            const yearLabels = yearlyEntries.map(([year]) => year).sort((a, b) => a - b);
-            const yearlyCounts = yearLabels.map(year => dashboardData.yearlyCounts[year] || 0);
-
-            monthlyBookingChart = new Chart(yearlyCtx, {
-                type: 'line',
-                data: {
-                    labels: yearLabels,
-                    datasets: [{
-                        label: 'จำนวนการจอง',
-                        data: yearlyCounts,
-                        borderColor: '#3C83F6',
-                        backgroundColor: '#3C83F6',
-                        tension: 0.3
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            // Other charts follow the same pattern...
-            // (SimPieChart, DepartmentChart, SimMostUsedChart logic remains same as original but using dashboardData)
-            
-            // Pie Chart
-            const pieCtx = document.getElementById('simPieChart').getContext('2d');
-            const typeEntries = Object.entries(dashboardData.typeCounts || {});
-            simPieChart = new Chart(pieCtx, {
-                type: 'pie',
-                plugins: [ChartDataLabels],
-                data: {
-                    labels: typeEntries.map(e => e[0]),
-                    datasets: [{
-                        data: typeEntries.map(e => e[1]),
-                        backgroundColor: ['#3C83F6', '#10A6E9', '#6467F1', '#7BD2FC', '#91C3FD']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right', labels: { font: defaultFont } },
-                        datalabels: {
-                            formatter: (value, ctx) => {
-                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                return total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
-                            },
-                            color: '#fff'
-                        }
-                    }
-                }
-            });
-
-            // Dept Chart
-            const deptCtx = document.getElementById('departmentChart').getContext('2d');
-            const deptEntries = Object.entries(dashboardData.departmentCounts || {});
-            departmentChart = new Chart(deptCtx, {
-                type: 'bar',
-                data: {
-                    labels: deptEntries.map(e => e[0]),
-                    datasets: [{
-                        label: 'จำนวนการจอง',
-                        data: deptEntries.map(e => e[1]),
-                        backgroundColor: '#10A6E9'
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            // Most Used Chart
-            const simCtx = document.getElementById('simMostUsed').getContext('2d');
-            const simEntries = Object.entries(dashboardData.mannequinUsage || {});
-            simMostUsed = new Chart(simCtx, {
-                type: 'bar',
-                data: {
-                    labels: simEntries.map(e => e[0]),
-                    datasets: [{
-                        label: 'จำนวนครั้งที่ใช้งาน',
-                        data: simEntries.map(e => e[1]),
-                        backgroundColor: '#6467F1'
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-
-        function populateDepartmentSelect() {
-            departmentList.innerHTML = '';
-            departments.forEach(dept => {
-                const option = document.createElement('option');
-                option.value = dept;
-                departmentList.appendChild(option);
-            });
-        }
-
-        function populatestuGroupSelect(groups) {
-            stuGroupSelect.innerHTML = '<option value="">เลือกกลุ่ม</option>';
-            if(groups && Array.isArray(groups)) {
-                groups.forEach(g => {
-                    const option = document.createElement('option');
-                    option.value = g;
-                    option.textContent = g;
-                    stuGroupSelect.appendChild(option);
-                });
-            }
-        }
-
-        function populateTeachersSelect() {
-            teachersList.innerHTML = '';
-            teachers.forEach(t => {
-                const option = document.createElement('option');
-                option.value = t;
-                teachersList.appendChild(option);
-            });
-        }
-
-        function populateCategoryFilter() {
-            categoryFilter.innerHTML = '<option value="">ทุกประเภท</option>';
-            categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
-                categoryFilter.appendChild(option);
-            });
-        }
-
-        function renderMannequins() {
-            mannequinList.innerHTML = '';
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedItems = filteredMannequins.slice(startIndex, endIndex);
-
-            if (paginatedItems.length === 0) {
-                mannequinList.innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <p class="text-gray-500 text-lg">ไม่พบรายการหุ่นฝึกหัตถการ</p>
-                    </div>
-                `;
-                paginationMenu.classList.add('hidden');
-                return;
-            }
-
-            paginationMenu.classList.remove('hidden');
-
-            paginatedItems.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:-translate-y-1 hover:shadow-lg flex flex-col';
-                const imageUrl = item.imageUrl || placeholderImage;
-                const isInCart = cart.some(cartItem => cartItem.id === item.id);
-                const isAvailable = item.status === 'พร้อมให้บริการ';
-
-                card.innerHTML = `
-                    <div class="relative h-48 bg-gray-200">
-                        <img src="${imageUrl}" alt="${item.name}" class="w-full h-full object-contain p-2" onerror="this.src='${placeholderImage}'">
-                        <div class="absolute top-2 right-2 bg-blue-700 text-white px-2 py-1 rounded-full text-xs font-medium">${item.category || 'ไม่ระบุประเภท'}</div>
-                    </div>
-                    <div class="p-4 flex flex-col flex-grow">
-                        <p class="text-gray-500 text-sm mb-1">${item.code || ''}</p>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2 flex-grow">${item.name}</h3>
-                        <div class="flex justify-between items-center mt-4">
-                            <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full ${isAvailable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
-                                ${item.status || 'ไม่ระบุสถานะ'}
-                            </span>
-                            <button class="add-to-cart-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${!isAvailable ? 'bg-gray-400 text-white cursor-not-allowed' : isInCart ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-blue-700 text-white hover:bg-blue-800'}" 
-                                data-id="${item.id}" ${!isAvailable ? 'disabled' : ''}>
-                                ${isInCart ? 'เลือกแล้ว' : 'เลือก'}
-                            </button>
-                        </div>
-                    </div>
-                `;
-                mannequinList.appendChild(card);
-                if (isAvailable) {
-                    card.querySelector('.add-to-cart-btn').addEventListener('click', () => toggleCartItem(item));
-                }
-            });
-        }
-
-        function renderPagination() {
-            const totalPages = Math.ceil(filteredMannequins.length / itemsPerPage);
-            pageNumbers.innerHTML = '';
-            prevPage.disabled = currentPage === 1;
-            nextPage.disabled = currentPage === totalPages;
-            pageInfo.textContent = `หน้า ${currentPage} จาก ${totalPages}`;
-
-            let startPage = Math.max(1, currentPage - 2);
-            let endPage = Math.min(totalPages, startPage + 4);
-            startPage = Math.max(1, endPage - 4);
-
-            for (let i = startPage; i <= endPage; i++) {
-                const btn = document.createElement('button');
-                btn.className = `px-3 py-1 rounded-lg text-sm font-medium ${i === currentPage ? 'bg-blue-700 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
-                btn.textContent = i;
-                btn.addEventListener('click', () => {
-                    currentPage = i;
-                    renderMannequins();
-                    renderPagination();
-                });
-                pageNumbers.appendChild(btn);
-            }
-        }
-
-        function toggleCartItem(item) {
-            const index = cart.findIndex(cartItem => cartItem.id === item.id);
-            if (index === -1) {
-                cart.push(item);
-            } else {
-                cart.splice(index, 1);
-            }
-            updateCartCount();
-            renderMannequins();
-            renderCartItems();
-        }
-
-        function updateCartCount() {
-            cartCount.textContent = cart.length;
-        }
-
-        function renderCartItems() {
-            if (cart.length === 0) {
-                emptyCartMessage.classList.remove('hidden');
-                cartItemsList.classList.add('hidden');
-                reservationForm.classList.add('hidden');
-                return;
-            }
-            emptyCartMessage.classList.add('hidden');
-            cartItemsList.classList.remove('hidden');
-            reservationForm.classList.remove('hidden');
-            cartItemsList.innerHTML = '';
-
-            cart.forEach(item => {
-                const cartItem = document.createElement('div');
-                cartItem.className = 'flex items-center bg-white p-4 rounded-lg shadow-sm border border-gray-200';
-                const imageUrl = item.imageUrl || placeholderImage;
-
-                cartItem.innerHTML = `
-                    <div class="h-16 w-16 flex-shrink-0 bg-gray-200 rounded-md overflow-hidden mr-4">
-                        <img src="${imageUrl}" alt="${item.name}" class="w-full h-full object-cover" onerror="this.src='${placeholderImage}'">
-                    </div>
-                    <div class="flex-grow">
-                        <p class="text-gray-500 text-sm">${item.code || ''}</p>
-                        <h4 class="font-medium">${item.name}</h4>
-                        <p class="text-sm text-gray-600">${item.category || 'ไม่ระบุประเภท'}</p>
-                    </div>
-                    <button class="remove-from-cart-btn text-red-500 hover:text-red-700" data-id="${item.id}">
-                        ลบ
-                    </button>
-                `;
-                cartItemsList.appendChild(cartItem);
-                cartItem.querySelector('.remove-from-cart-btn').addEventListener('click', () => {
-                    const index = cart.findIndex(c => c.id === item.id);
-                    if(index !== -1) {
-                        cart.splice(index, 1);
-                        updateCartCount();
-                        renderCartItems();
-                        renderMannequins();
-                    }
-                });
-            });
-        }
-
-        function renderReservations() {
-            reservationsTableBody.innerHTML = '';
-            if (!reservations || reservations.length === 0) {
-                noReservations.classList.remove('hidden');
-                reservationsTable.classList.add('hidden');
-                return;
-            }
-            reservationsTable.classList.remove('hidden');
-            noReservations.classList.add('hidden');
-
-            reservations.forEach(res => {
-                const row = document.createElement('tr');
-                let statusClass = 'text-gray-900';
-                if (res.textStatus === 'รอตรวจสอบ') statusClass = 'bg-yellow-100 text-yellow-800';
-                else if (res.textStatus === 'อนุมัติ') statusClass = 'bg-blue-100 text-blue-800';
-                else if (res.textStatus === 'กำลังใช้งาน') statusClass = 'bg-green-100 text-green-800';
-
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="px-2 py-1 rounded-full text-xs font-semibold ${statusClass}">${res.textStatus || '-'}</span></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${res.borrowerName || '-'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${res.mannequinName || '-'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${res.borrowType || '-'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${res.department || '-'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${res.useNumber || '-'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${res.textDetails || '-'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(res.startDateTime)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(res.endDateTime)}</td>
-                `;
-                reservationsTableBody.appendChild(row);
-            });
-        }
-
-        function formatDate(dateInput) {
-            if (!dateInput) return '-';
-            const date = new Date(dateInput);
-            if (isNaN(date)) return '-';
-            const day = date.getDate();
-            const month = monthNames[date.getMonth()];
-            const year = date.getFullYear() + 543;
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            return `${day} ${month} ${year} ${hours}:${minutes}`;
-        }
-
-        function filterAndSortMannequins() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const categoryValue = categoryFilter.value;
-            const sortValue = sortBy.value;
-
-            filteredMannequins = mannequins.filter(item => {
-                const matchesSearch = 
-                    (item.name && item.name.toLowerCase().includes(searchTerm)) || 
-                    (item.code && item.code.toLowerCase().includes(searchTerm)) ||
-                    (item.category && item.category.toLowerCase().includes(searchTerm));
-                const matchesCategory = !categoryValue || (item.category === categoryValue);
-                return matchesSearch && matchesCategory;
-            });
-
-            filteredMannequins.sort((a, b) => {
-                if (sortValue === 'name') return (a.name || '').localeCompare(b.name || '');
-                if (sortValue === 'category') return (a.category || '').localeCompare(b.category || '');
-                return 0;
-            });
-
-            currentPage = 1;
-            renderMannequins();
-            renderPagination();
-        }
-
-        function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
-        function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
-        function showError(msg) { Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: msg, confirmButtonColor: '#1d4ed8' }); }
-
-        // Tab Switching Logic
-        function showDashboardView() {
-            dashboardTab.className = "tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-800 text-white whitespace-nowrap";
-            reserveTab.className = "tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-600 hover:bg-blue-800 whitespace-nowrap text-white";
-            reservationsTab.className = "tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-600 hover:bg-blue-800 whitespace-nowrap text-white";
-            reservationView.classList.add('hidden');
-            reservationsView.classList.add('hidden');
-            cartBtn.classList.add('hidden');
-            fetchDashboardData();
-        }
-
-        function showReservationView() {
-            dashboardTab.className = "tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-600 hover:bg-blue-800 whitespace-nowrap text-white";
-            reserveTab.className = "tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-800 text-white whitespace-nowrap";
-            reservationsTab.className = "tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-600 hover:bg-blue-800 whitespace-nowrap text-white";
-            dashboardSection.classList.add('hidden');
-            reservationsView.classList.add('hidden');
-            reservationView.classList.remove('hidden');
-            cartBtn.classList.remove('hidden');
-            filteredMannequins = [...mannequins];
-            currentPage = 1;
-            populateCategoryFilter();
-            fetchMannequins();
-            renderPagination();
-        }
-
-        function showReservationsView() {
-            dashboardTab.className = "tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-600 hover:bg-blue-800 whitespace-nowrap text-white";
-            reserveTab.className = "tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-600 hover:bg-blue-800 whitespace-nowrap text-white";
-            reservationsTab.className = "tab-btn px-4 py-2 rounded-t-lg text-sm font-medium bg-blue-800 text-white whitespace-nowrap";
-            dashboardSection.classList.add('hidden');
-            reservationView.classList.add('hidden');
-            reservationsView.classList.remove('hidden');
-            cartBtn.classList.add('hidden');
-            fetchReservations();
-        }
-
-        // Event Listeners
-        dashboardTab.addEventListener('click', showDashboardView);
-        reserveTab.addEventListener('click', showReservationView);
-        reservationsTab.addEventListener('click', showReservationsView);
-
-        cartBtn.addEventListener('click', () => { cartModal.classList.remove('hidden'); renderCartItems(); });
-        closeCartBtn.addEventListener('click', () => { cartModal.classList.add('hidden'); });
-        clearCartBtn.addEventListener('click', () => {
-            Swal.fire({
-                icon: 'warning', title: 'ต้องการล้างตะกร้า?', showCancelButton: true, confirmButtonText: 'ล้าง', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#ef4444'
-            }).then(res => {
-                if (res.isConfirmed) {
-                    cart = [];
-                    updateCartCount();
-                    renderCartItems();
-                    renderMannequins();
-                    Swal.fire({ icon: 'success', title: 'ล้างตะกร้าเรียบร้อย', showConfirmButton: false, timer: 1000 });
-                }
-            });
-        });
-
-        submitReservationBtn.addEventListener('click', submitReservation);
-        searchInput.addEventListener('input', filterAndSortMannequins);
-        categoryFilter.addEventListener('change', filterAndSortMannequins);
-        sortBy.addEventListener('change', filterAndSortMannequins);
-
-        prevPage.addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderMannequins();
-                    renderPagination();
-                }
-            });
-
-            nextPage.addEventListener('click', () => {
-                const totalPages = Math.ceil(filteredMannequins.length / itemsPerPage);
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderMannequins();
-                    renderPagination();
-                }
-            });
-
-        window.addEventListener('click', (e) => { if (e.target === cartModal) cartModal.classList.add('hidden'); });
-
-        // Set min date
-        const nowStr = new Date().toISOString().slice(0, 16);
-        document.getElementById('startDateTime').min = nowStr;
-        document.getElementById('endDateTime').min = nowStr;
-
-        // Initialize
-        fetchDepartments();
-        fetchstuGroup();
-        fetchTeachers();
-        showReservationView();
-    });
-  </script>
+  <!-- Application Logic -->
+  <script src="app.js" defer></script>
 </body>
 
 </html>
-
-
-
-
